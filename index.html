@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Мудрость года</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #0a0a0a;
+    color: #fff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Progress dots */
+  .progress {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 100;
+    padding: 8px 16px;
+  }
+
+  .progress .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: background 0.3s ease;
+    border: none;
+    padding: 0;
+  }
+
+  .progress .dot:hover {
+    background: rgba(255,255,255,0.4);
+  }
+
+  .progress .dot.active {
+    background: #fff;
+  }
+
+  /* Slides */
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+    padding: 48px 24px 80px;
+  }
+
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Title slide */
+  .slide-title {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .slide-title h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: clamp(36px, 7vw, 72px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .slide-title .subtitle {
+    font-size: clamp(12px, 1.6vw, 16px);
+    font-weight: 300;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .slide-title .years {
+    font-size: clamp(13px, 1.8vw, 18px);
+    font-weight: 400;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.2em;
+    margin-bottom: 48px;
+  }
+
+  .slide-title .epigraph {
+    max-width: 540px;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: clamp(14px, 1.8vw, 18px);
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.8;
+    margin-bottom: 56px;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 14px 40px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    cursor: pointer;
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+
+  .btn:hover {
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* Quote slides — split layout */
+  .slide-quote {
+    padding: 48px clamp(24px, 5vw, 80px) 80px;
+  }
+
+  .slide-quote .quote-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(32px, 5vw, 72px);
+    max-width: 1100px;
+    width: 100%;
+  }
+
+  .slide-quote .quote-row.reverse {
+    flex-direction: row-reverse;
+  }
+
+  .slide-quote .portrait {
+    flex: 0 0 auto;
+    width: 38%;
+    max-width: 400px;
+  }
+
+  .slide-quote .portrait img {
+    width: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(0.3);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .slide-quote .quote-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .slide-quote .quote-text {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: clamp(18px, 2.6vw, 28px);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 24px;
+  }
+
+  .slide-quote .quote-text::before {
+    content: "\00AB";
+  }
+
+  .slide-quote .quote-text::after {
+    content: "\00BB";
+  }
+
+  .slide-quote .quote-divider {
+    width: 40px;
+    height: 1px;
+    background: rgba(255,255,255,0.2);
+    margin-bottom: 16px;
+  }
+
+  .slide-quote .quote-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(11px, 1.2vw, 13px);
+    font-weight: 300;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+  }
+
+  /* Final slide */
+  .slide-final {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .slide-final h2 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: clamp(30px, 5.5vw, 60px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+  }
+
+  .slide-final .final-line {
+    font-size: clamp(13px, 1.6vw, 16px);
+    font-weight: 300;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.8;
+    margin-bottom: 8px;
+  }
+
+  .slide-final .final-line:last-of-type {
+    margin-bottom: 56px;
+  }
+
+  /* Bottom navigation */
+  .nav-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 20px;
+    z-index: 100;
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s ease;
+  }
+
+  .nav-btn:hover {
+    border-color: rgba(255,255,255,0.5);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.15;
+    cursor: default;
+  }
+
+  .nav-counter {
+    font-size: 13px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.05em;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* Mobile */
+  @media (max-width: 700px) {
+    .progress {
+      gap: 4px;
+      top: 10px;
+    }
+
+    .progress .dot {
+      width: 6px;
+      height: 6px;
+    }
+
+    .slide {
+      padding: 44px 20px 72px;
+    }
+
+    .slide-quote .quote-row,
+    .slide-quote .quote-row.reverse {
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+    }
+
+    .slide-quote .portrait {
+      width: 70%;
+      max-width: 300px;
+    }
+
+    .slide-quote .quote-text {
+      font-size: clamp(16px, 4.5vw, 22px);
+    }
+
+    .slide-quote .quote-divider {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .nav-bottom {
+      gap: 16px;
+      padding: 14px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="carousel" id="carousel">
+  <div class="progress" id="progress"></div>
+</div>
+
+<div class="nav-bottom">
+  <button class="nav-btn" id="btnPrev" aria-label="Назад">&#8592;</button>
+  <span class="nav-counter" id="counter">1 / 20</span>
+  <button class="nav-btn" id="btnNext" aria-label="Вперёд">&#8594;</button>
+</div>
+
+<script>
+  // ============================================================
+  //  ДАННЫЕ СЛАЙДОВ — редактируйте тексты здесь
+  // ============================================================
+
+  // Титульный слайд
+  const TITLE_SLIDE = {
+    heading:   'Мудрость года',
+    subtitle:  'Коллекция бессмертных изречений',
+    years:     '2025 — 2026',
+    epigraph:  'Великие умы обсуждают идеи. Средние умы обсуждают события. Ярослав обсуждает всё сразу.',
+    button:    'Начать просмотр',
+  };
+
+  // Слайды с цитатами: photo, quote, sub
+  const QUOTE_SLIDES = [
+    {
+      photo: 'photos/photo_01.jpg',
+      quote: 'Для меня это загадка, моя борьба, как говорил один художник',
+      sub:   'Ярослав, озадаченный связью с "Отделом счастья"',
+    },
+    {
+      photo: 'photos/photo_02.jpg',
+      quote: 'Я скажу мысль. Она будет тяжёлой. Остановите меня, если Остапа понесло',
+      sub:   'Последнее предупреждение перед гениальностью',
+    },
+    {
+      photo: 'photos/photo_03.jpg',
+      quote: 'Я сегодня пораньше встал. Пришли в голову шальные мысли. Хочу с вами поделиться',
+      sub:   'Утренний дэйлик с сонными сотрудниками.',
+    },
+    {
+      photo: 'photos/photo_04.jpg',
+      quote: 'Он прикидывался шлангом и делал вид, что ничего не понимает',
+      sub:   'Описание 90% заказчиков которые не дали ТЗ',
+    },
+    {
+      photo: 'photos/photo_05.jpg',
+      quote: 'Мне надо успеть сказать сколько денег надо напечатать',
+      sub:   'Центральный банк нервно курит в сторонке',
+    },
+    {
+      photo: 'photos/photo_06.jpg',
+      quote: 'Без ТЗ — результат ХЗ',
+      sub:   'Вершина управленческой мысли. Конфуций бы одобрил.',
+    },
+    {
+      photo: 'photos/photo_07.jpg',
+      quote: 'Когда у тебя день рождения? 31 числа. А следующий когда?',
+      sub:   'Вопросы, на которые наука не знает ответа',
+    },
+    {
+      photo: 'photos/photo_08.jpg',
+      quote: '*Савелия все поздравили?* Не, спасибо!',
+      sub:   'Не, спасибо!',
+    },
+    {
+      photo: 'photos/photo_09.jpg',
+      quote: 'Как чувствуешь, брат, как чувствуешь',
+      sub:   'брат, брат, брат',
+    },
+    {
+      photo: 'photos/photo_10.jpg',
+      quote: 'Пока не посадят, пару спринтов ещё с нами',
+      sub:   'Мотивационная речь года. Ярослвв ценит сотрудников.',
+    },
+    {
+      photo: 'photos/photo_11.jpg',
+      quote: 'Проще переспать, чем объяснять что не хочу',
+      sub:   'Философия пятницы вечером',
+    },
+    {
+      photo: 'photos/photo_12.jpg',
+      quote: 'Алексей, говори... Хотя, не, не говори ничего!',
+      sub:   'Демократия длилась ровно 0.5 секунды',
+    },
+    {
+      photo: 'photos/photo_13.jpg',
+      quote: 'Максим — наш боевой фронт!',
+      sub:   'Максим: потеет в тылу',
+    },
+    {
+      photo: 'photos/photo_14.jpg',
+      quote: 'Всё будет хорошо, если не будет плохо!',
+      sub:   'Вся суть проектного менеджмента в одном предложении',
+    },
+    {
+      photo: 'photos/photo_15.jpg',
+      quote: 'Хороший договор, женился бы на таком!',
+      sub:   'Когда юрист внутри победил романтика',
+    },
+    {
+      photo: 'photos/photo_16.jpg',
+      quote: 'Битрикс всё пишет! Отключу пожалуй на этом',
+      sub:   'Большой Брат следит за спринтами',
+    },
+    {
+      photo: 'photos/photo_05.jpg',
+      quote: 'Рыба-карась, игра началась, время пошло',
+      sub:   'Начало каждого спринта. Каждый раз как в последний.',
+    },
+    {
+      photo: 'photos/photo_10.jpg',
+      quote: 'Если у всех хорошо, а у одного плохо, то придётся сказать что у нас текучка... ладно, плохо пошутил',
+      sub:   'Корпоративный юмор: тонкая грань между смехом и увольнением',
+    },
+  ];
+
+  // Финальный слайд
+  const FINAL_SLIDE = {
+    heading: 'С Днём Рождения, Ярослав.',
+    lines: [
+      'Все цитаты реальны. К сожалению.',
+      'Собрано с уважением и лёгким ужасом',
+    ],
+    button: 'Смотреть сначала',
+  };
+
+  // ============================================================
+  //  Генерация HTML — ниже можно не трогать
+  // ============================================================
+
+  const carousel = document.getElementById('carousel');
+  const progressEl = document.getElementById('progress');
+  const counterEl = document.getElementById('counter');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+
+  function buildSlides() {
+    // Title
+    const title = document.createElement('div');
+    title.className = 'slide slide-title active';
+    title.innerHTML =
+      '<h1>' + TITLE_SLIDE.heading + '</h1>' +
+      '<div class="subtitle">' + TITLE_SLIDE.subtitle + '</div>' +
+      '<div class="years">' + TITLE_SLIDE.years + '</div>' +
+      '<div class="epigraph">' + TITLE_SLIDE.epigraph + '</div>' +
+      '<button class="btn" id="btnStart">' + TITLE_SLIDE.button + '</button>';
+    carousel.appendChild(title);
+
+    // Quotes
+    QUOTE_SLIDES.forEach(function(s, i) {
+      const el = document.createElement('div');
+      el.className = 'slide slide-quote';
+      const rowClass = i % 2 === 0 ? 'quote-row' : 'quote-row reverse';
+      el.innerHTML =
+        '<div class="' + rowClass + '">' +
+          '<div class="portrait"><img src="' + s.photo + '" alt=""></div>' +
+          '<div class="quote-body">' +
+            '<div class="quote-text">' + s.quote + '</div>' +
+            '<div class="quote-divider"></div>' +
+            '<div class="quote-sub">' + s.sub + '</div>' +
+          '</div>' +
+        '</div>';
+      carousel.appendChild(el);
+    });
+
+    // Final
+    const fin = document.createElement('div');
+    fin.className = 'slide slide-final';
+    let linesHTML = '';
+    FINAL_SLIDE.lines.forEach(function(l) {
+      linesHTML += '<div class="final-line">' + l + '</div>';
+    });
+    fin.innerHTML =
+      '<h2>' + FINAL_SLIDE.heading + '</h2>' +
+      linesHTML +
+      '<button class="btn" id="btnRestart">' + FINAL_SLIDE.button + '</button>';
+    carousel.appendChild(fin);
+  }
+
+  buildSlides();
+
+  // ============================================================
+  //  Навигация
+  // ============================================================
+
+  const slides = carousel.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', function() { goTo(i); });
+    progressEl.appendChild(dot);
+  }
+  const dots = progressEl.querySelectorAll('.dot');
+
+  function goTo(index) {
+    if (index < 0 || index >= total || index === current) return;
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    counterEl.textContent = (current + 1) + ' / ' + total;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+  }
+
+  function next() { if (current < total - 1) goTo(current + 1); }
+  function prev() { if (current > 0) goTo(current - 1); }
+
+  btnPrev.addEventListener('click', prev);
+  btnNext.addEventListener('click', next);
+  document.getElementById('btnStart').addEventListener('click', function() { goTo(1); });
+  document.getElementById('btnRestart').addEventListener('click', function() { goTo(0); });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  });
+
+  let touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) next(); else prev();
+    }
+  }, { passive: true });
+
+  btnPrev.disabled = true;
+</script>
+
+</body>
+</html>
